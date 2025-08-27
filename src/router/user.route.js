@@ -1,0 +1,31 @@
+const express = require('express');
+const { guestUser, guestUserVote, getAllGuestUser } = require('../controller/user.controller');
+const router = express.Router();
+
+// deviceID
+router.post('/guest/user', async (req, res, next) => {
+    try {
+        await guestUser(req, res);
+    } catch (err) {
+        next(err);
+    }
+});
+
+router.get('/guest/user/get-all', async (req, res, next) => {
+    try {
+        await getAllGuestUser(req, res);
+    } catch (error) {
+        next(err);
+    }
+})
+
+// deviceID, marketId(mongoDB Id), [openSessionVoteNumber(array) Or closeSessionVoteNumber(array)]
+router.post('/guest/user/vote', async (req, res, next) => {
+    try {
+        await guestUserVote(req, res);
+    } catch (error) {
+        next(err);
+    }
+});
+
+module.exports = router

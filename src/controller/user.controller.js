@@ -1,0 +1,93 @@
+const mongoose = require("mongoose");
+const UserModel = require("../model/User.model");
+
+// unique gest id generate function
+function generateGuestUserId() {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, "0");
+    const date = String(now.getDate()).padStart(2, "0");
+    const hour = String(now.getHours()).padStart(2, "0");
+    const minute = String(now.getMinutes()).padStart(2, "0");
+    const second = String(now.getSeconds()).padStart(2, "0");
+    const ms = String(now.getMilliseconds()).padStart(3, "0");
+    return `GUEST-${year}${month}${date}${hour}${minute}${second}${ms}`;
+}
+
+// user guest auto login
+const guestUser = async (req, res) => {
+    try {
+        if (!req.body) return res.status(400).json({ success: false, message: 'req.body not Found' });
+        const { deviceID } = req.body;
+        if (!deviceID) return res.status(400).json({ success: false, message: 'All fields are required' });
+        const isGuestUser = await UserModel.findOne({ deviceID });
+        if (isGuestUser) {
+            isGuestUser.lastLogin = new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" });
+            await isGuestUser.save();
+            return res.status(200).json({ success: true, data: isGuestUser, message: 'User Login' });
+        }
+        let userGuestId = generateGuestUserId();
+        while (await UserModel.findOne({ userGuestId })) {
+            userGuestId = generateGuestUserId();
+        }
+        const newGuestUser = await UserModel.create({ userGuestId, deviceID });
+        return res.status(201).json({ success: true, data: newGuestUser, message: 'User register' });
+    } catch (error) {
+        console.log(error.message);
+        return res.status(500).json({ success: false, message: 'Internal Server Error' });
+    }
+}
+
+// get all guest user
+const getAllGuestUser = async (req, res) => {
+    try {
+        const guestUsers = await UserModel.find({});
+        return res.status(200).json({ success: true, data: guestUsers })
+    } catch (error) {
+        console.log(error.message);
+        return res.status(500).json({ success: false, message: 'Internal Server Error' });
+    }
+}
+
+// user vote
+const guestUserVote = async (req, res) => {
+    try {
+        if (!req.body) return res.status(400).json({ success: false, message: 'req.body not Found' });
+        console.log(req.body);
+        const { deviceID, marketId, openSessionVoteNumber, closeSessionVoteNumber } = req.body;
+        if (!deviceID || !marketId) return res.status(400).json({ success: false, message: 'All fields are required' });
+        if ((!openSessionVoteNumber || openSessionVoteNumber.length === 0) && (!closeSessionVoteNumber || closeSessionVoteNumber.length === 0)) return res.status(400).json({ success: false, message: 'All fields are required' });
+        if (!mongoose.Types.ObjectId.isValid(marketId)) return res.status(400).json({ success: false, message: "Invalid marketId" });
+        const isGuestUser = await UserModel.findOne({ deviceID });
+        if (!isGuestUser) return res.status(400).json({ success: false, message: 'User not found' });
+        const existingVote = isGuestUser.votes.find((item) => item.marketId.toString() === marketId);
+        if (existingVote) {
+            if ((openSessionVoteNumber && existingVote.openSessionVoteNumber?.length > 0) ||
+                (closeSessionVoteNumber && existingVote.closeSessionVoteNumber?.length > 0)) {
+                return res.status(400).json({ success: false, message: 'You can vote again after 12 AM' });
+            }
+            if (openSessionVoteNumber && (!existingVote.openSessionVoteNumber || existingVote.openSessionVoteNumber.length === 0)) {
+                existingVote.openSessionVoteNumber = openSessionVoteNumber;
+            }
+            if (closeSessionVoteNumber && (!existingVote.closeSessionVoteNumber || existingVote.closeSessionVoteNumber.length === 0)) {
+                existingVote.closeSessionVoteNumber = closeSessionVoteNumber;
+            }
+            await isGuestUser.save();
+            return res.status(201).json({ success: true, data: isGuestUser, message: 'Vote successfully' });
+        }
+        if (openSessionVoteNumber && openSessionVoteNumber.length > 0) { isGuestUser.votes.push({ marketId, openSessionVoteNumber }); }
+        if (closeSessionVoteNumber && closeSessionVoteNumber.length > 0) { isGuestUser.votes.push({ marketId, closeSessionVoteNumber }); }
+        await isGuestUser.save();
+        return res.status(201).json({ success: true, data: isGuestUser, message: 'Vote successfully' });
+
+    } catch (error) {
+        console.log(error.message);
+        return res.status(500).json({ success: false, message: 'Internal Server Error' });
+    }
+}
+
+module.exports = {
+    guestUser,
+    getAllGuestUser,
+    guestUserVote,
+}
