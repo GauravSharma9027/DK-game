@@ -19,8 +19,29 @@ const guesserRequest = async (req, res) => {
     }
 }
 
- 
+// change Status 
+const changeGuesserRequestStatus = async (req, res) => {
+    try {
+        const guesserRequestId = req.params.guesserRequestId;
+        if (!guesserRequestId) return res.status(400).json({ success: false, message: 'guesserRequest Id not Found' });
+        if (!req.body.status) return res.status(400).json({ success: false, message: 'req.body.status not Found' });
+        const { status } = req.body;
+        if (status === "rejected" || status === "approved") {
+            const isGuesserRequest = await GuesserRequestModel.findById(guesserRequestId);
+            if (!isGuesserRequest) return res.status(400).json({ success: false, message: 'This Guesser Request is not Found' });
+            if (isGuesserRequest.status === "rejected" || isGuesserRequest.status === "approved") return res.status(400).json({ success: false, message: 'Guesser Request status already updated' });
+            isGuesserRequest.status = status;
+            isGuesserRequest.save();
+            return res.status(200).json({ success: true, message: 'Status Updated Successfully' });
+        }
+        return res.status(400).json({ success: false, message: 'miss match value' })
+    } catch (error) {
+        console.log(error.message);
+        return res.status(500).json({ success: false, message: 'Internal Server Error' });
+    }
+}
 
+// Get All Approved Guesser Requests
 const getPendingGuesser = async (req, res) => {
     try {
         const pendingRequests = await GuesserRequestModel.find({ status: "pending" });
@@ -44,6 +65,7 @@ const getApprovedGuessers = async (req, res) => {
 
 module.exports = {
     guesserRequest,
+    changeGuesserRequestStatus,
     getPendingGuesser,
     getApprovedGuessers,
 }

@@ -7,9 +7,20 @@ const guesserRequestSchema = new Schema({
     userGuestId: { type: String, required: true },
     guesserName: { type: String, required: true, trim: true },
     experience: { type: String, required: true, trim: true },
-    whatsAppNumber: { type: Number, required: true, trim: true },
+    whatsAppNumber: {
+        type: String,
+        required: true,
+        trim: true,
+        unique: true,
+        validate: {
+            validator: function (v) {
+                return /^\+?[0-9]{10,15}$/.test(v);
+            },
+            message: props => `${props.value} is not a valid WhatsApp number!`
+        }
+    },
     reason: { type: String, required: true, trim: true },
-    Status: { type: String, enum: ["pending", "approved", "rejected"], default: "pending", required: true }
+    status: { type: String, enum: ["pending", "approved", "rejected"], default: "pending", required: true }
 }, {
     timestamps: true,
 });
