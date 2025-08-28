@@ -36,7 +36,7 @@ router.post('/guesser/login', async (req, res, next) => {
     }
 });
 
-router.get('/guesser/logout', async (req, res, next) => {
+router.post('/guesser/logout', async (req, res, next) => {
     try {
         await logoutGuesser(req, res);
     } catch (err) {

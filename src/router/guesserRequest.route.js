@@ -2,7 +2,7 @@ const express = require('express');
 const { guesserRequest, changeGuesserRequestStatus, getPendingGuesser, getApprovedGuessers } = require('../controller/guesserRequest.controller');
 const router = express.Router();
 
-// !realName || !userMongooseId || !guesserName || !experience || !whatsAppNumber(type:number) || !reason
+// realName || userMongooseId || guesserName || experience || whatsAppNumber(type:number) || reason
 router.post('/guesser/request', async (req, res, next) => {
     try {
         await guesserRequest(req, res);
