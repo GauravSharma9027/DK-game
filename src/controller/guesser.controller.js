@@ -56,7 +56,7 @@ const loginGuesser = async (req, res) => {
     try {
         const { whatsAppNumber, password } = req.body;
         if (!whatsAppNumber || !password) return res.status(400).json({ success: false, message: "All field is Required." });
-        const isGuesser = await GuesserModel.findOne({ whatsAppNumber: whatsAppNumber });
+        const isGuesser = await GuesserModel.findOne({ whatsAppNumber: whatsAppNumber }).select("-__v -voteByUser")
         if (!isGuesser) return res.status(400).json({ success: false, message: "Number is Not Registered." });
         const IsMatched = bcrypt.compareSync(password, isGuesser.password);
         if (!IsMatched) return res.status(400).json({ success: false, message: "Password Is Wrong" });
@@ -71,7 +71,8 @@ const loginGuesser = async (req, res) => {
             sameSite: "Lax",
             maxAge: 7 * 24 * 60 * 60 * 1000 // 7d * 24h * 60m * 60s * 1000ms
         })
-        return res.status(200).json({ success: true, message: "Login Successfully" })
+        const { password: pwd, ...guesserData } = isGuesser.toObject();
+        return res.status(200).json({ success: true, message: "Login Successfully", data: guesserData })
     } catch (error) {
         console.log(error.message);
         return res.status(500).json({ success: false, message: 'Internal Server Error' });

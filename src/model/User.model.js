@@ -4,7 +4,7 @@ const Schema = mongoose.Schema;
 const userSchema = new Schema({
     userGuestId: { type: String, required: true, unique: true },
     deviceID: { type: String, required: true, unique: true },
-    lastLogin: { type: String, default: () => new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" }) },
+    lastLogin: { type: Date, default: () => new Date() },
     votes: [{
         marketId: { type: mongoose.Schema.Types.ObjectId, ref: 'MarketModel' },
         openSessionVoteNumber: { type: [Number] },

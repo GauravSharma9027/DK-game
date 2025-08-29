@@ -6,7 +6,7 @@ const guesserRequestSchema = new Schema({
     realName: { type: String, required: true, trim: true },
     userGuestId: { type: String, required: true },
     guesserName: { type: String, required: true, trim: true },
-    experience: { type: String, required: true, trim: true },
+    experience: { type: String, trim: true },
     whatsAppNumber: {
         type: String,
         required: true,

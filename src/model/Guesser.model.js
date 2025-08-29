@@ -5,7 +5,7 @@ const guesserSchema = new Schema({
     realName: { type: String, required: true, trim: true },
     userGuestId: { type: String, required: true },
     guesserName: { type: String, required: true, trim: true },
-    experience: { type: String, required: true, trim: true },
+    experience: { type: String, trim: true },
     whatsAppNumber: { type: Number, required: true, trim: true },
     password: { type: String, required: true, trim: true },
     voteByUser: [{ type: mongoose.Schema.Types.ObjectId, ref: 'UserModel', default: [] }],

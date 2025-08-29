@@ -1,5 +1,7 @@
 const mongoose = require("mongoose");
 const UserModel = require("../model/User.model");
+const THRESHOLD_HOURS = 24;
+
 
 // unique gest id generate function
 function generateGuestUserId() {
@@ -22,16 +24,22 @@ const guestUser = async (req, res) => {
         if (!deviceID) return res.status(400).json({ success: false, message: 'All fields are required' });
         const isGuestUser = await UserModel.findOne({ deviceID });
         if (isGuestUser) {
-            isGuestUser.lastLogin = new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" });
+            isGuestUser.lastLogin = new Date();
             await isGuestUser.save();
-            return res.status(200).json({ success: true, data: isGuestUser, message: 'User Login' });
+            const isGuestUserIST = isGuestUser.toObject();
+            isGuestUserIST.lastLoginIST = isGuestUser.lastLogin.toLocaleString("en-IN", { timeZone: "Asia/Kolkata" });
+            delete isGuestUserIST.lastLogin
+            return res.status(200).json({ success: true, data: isGuestUserIST, message: 'User Login' });
         }
         let userGuestId = generateGuestUserId();
         while (await UserModel.findOne({ userGuestId })) {
             userGuestId = generateGuestUserId();
         }
         const newGuestUser = await UserModel.create({ userGuestId, deviceID });
-        return res.status(201).json({ success: true, data: newGuestUser, message: 'User register' });
+        const newGuestUserIST = newGuestUser.toObject();
+        newGuestUserIST.lastLoginIST = newGuestUser.lastLogin.toLocaleString("en-IN", { timeZone: "Asia/Kolkata" });
+        delete newGuestUserIST.lastLogin;
+        return res.status(201).json({ success: true, data: newGuestUserIST, message: 'User register' });
     } catch (error) {
         console.log(error.message);
         return res.status(500).json({ success: false, message: 'Internal Server Error' });
@@ -86,8 +94,34 @@ const guestUserVote = async (req, res) => {
     }
 }
 
+// user active 
+const activeGuestUser = async (req, res) => {
+    try {
+        const thresholdDate = new Date(Date.now() - THRESHOLD_HOURS * 60 * 60 * 1000);
+        const activeGuestUser = await UserModel.find({ lastLogin: { $gte: thresholdDate } });
+        return res.status(200).json({ success: true, data: activeGuestUser.length });
+    } catch (error) {
+        console.log(error.message);
+        return res.status(500).json({ success: false, message: 'Internal Server Error' });
+    }
+}
+
+// user inactive 
+const inActiveGuestUser = async (req, res) => {
+    try {
+        const thresholdDate = new Date(Date.now() - THRESHOLD_HOURS * 60 * 60 * 1000);
+        const inActiveGuestUser = await UserModel.find({ lastLogin: { $lt: thresholdDate } });
+        return res.status(200).json({ success: true, data: inActiveGuestUser.length });
+    } catch (error) {
+        console.log(error.message);
+        return res.status(500).json({ success: false, message: 'Internal Server Error' });
+    }
+}
+
 module.exports = {
     guestUser,
     getAllGuestUser,
     guestUserVote,
+    activeGuestUser,
+    inActiveGuestUser,
 }

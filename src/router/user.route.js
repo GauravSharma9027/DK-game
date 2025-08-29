@@ -1,5 +1,5 @@
 const express = require('express');
-const { guestUser, guestUserVote, getAllGuestUser } = require('../controller/user.controller');
+const { guestUser, guestUserVote, getAllGuestUser, activeGuestUser, inActiveGuestUser } = require('../controller/user.controller');
 const router = express.Router();
 
 // deviceID
@@ -23,6 +23,22 @@ router.get('/guest/user/get-all', async (req, res, next) => {
 router.post('/guest/user/vote', async (req, res, next) => {
     try {
         await guestUserVote(req, res);
+    } catch (error) {
+        next(err);
+    }
+});
+
+router.get('/guest/user/active', async (req, res, next) => {
+    try {
+        await activeGuestUser(req, res);
+    } catch (error) {
+        next(err);
+    }
+});
+
+router.get('/guest/user/inactive', async (req, res, next) => {
+    try {
+        await inActiveGuestUser(req, res);
     } catch (error) {
         next(err);
     }
