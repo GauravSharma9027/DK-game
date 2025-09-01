@@ -33,4 +33,5 @@ router.delete('/create/market/delete/:createdMarketId', async (req, res, next) =
         next(error)
     }
 });
+
 module.exports = router

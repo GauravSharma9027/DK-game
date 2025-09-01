@@ -65,14 +65,12 @@ const loginGuesser = async (req, res) => {
             whatsAppNumber: isGuesser.whatsAppNumber,
         }
         const token = jwtGenerate(payload);
-        res.cookie("token", token, {
-            httpOnly: true,
-            secure: false,
-            sameSite: "Lax",
-            maxAge: 7 * 24 * 60 * 60 * 1000 // 7d * 24h * 60m * 60s * 1000ms
-        })
         const { password: pwd, ...guesserData } = isGuesser.toObject();
-        return res.status(200).json({ success: true, message: "Login Successfully", data: guesserData })
+        const data = {
+            guesserData,
+            token
+        }
+        return res.status(200).json({ success: true, message: "Login Successfully", data: data, })
     } catch (error) {
         console.log(error.message);
         return res.status(500).json({ success: false, message: 'Internal Server Error' });

@@ -59,9 +59,18 @@ const getActiveNotice = async (req, res) => {
     }
 };
 
-
+const getAllNotice = async (req, res) => {
+    try {
+        const Notices = await NoticeModel.find();
+        return res.status(200).json({ success: true, data: Notices });
+    } catch (error) {
+        console.error("Error in getActiveNotice:", error.message);
+        return res.status(500).json({ success: false, message: "Internal Server Error", error: error.message });
+    }
+}
 module.exports = {
     createNotice,
     toggleNoticeStatus,
     getActiveNotice,
+    getAllNotice
 }
