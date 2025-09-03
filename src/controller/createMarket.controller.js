@@ -87,21 +87,85 @@ const guestUserIsVotedOnMarket = async (req, res) => {
 const userVoteCountOnNumber = async (req, res) => {
     try {
         const marketId = req.params.marketId;
-        if (!mongoose.Types.ObjectId.isValid(marketId))
-            return res.status(400).json({ success: false, message: "Market ID is required" });
-        const isMarket = await CreateMarketModel.findById(marketId);
-        if (!isMarket)
-            return res.status(400).json({ success: false, message: "Market Not Exist" });
+        // Validate Market ID
+        if (!mongoose.Types.ObjectId.isValid(marketId)) {
+            return res.status(400).json({ success: false, message: "Market ID is invalid or missing" });
+        }
+        // Fetch Market
+        const isMarket = await CreateMarketModel.findById(marketId).lean();
+        if (!isMarket) {
+            return res.status(404).json({ success: false, message: "Market not found" });
+        }
         const todayDate = new Date().toISOString().split("T")[0];
-        const todayVotedUser = isMarket.userVote.filter((item) => {
-            return item.votedAt.toISOString().split("T")[0] === todayDate;
+        // Filter today's voted users
+        const todayVotedUser = (isMarket.userVote || [])
+            .filter((item) => item.votedAt && item.votedAt.toISOString().split("T")[0] === todayDate)
+            .map((item) => ({
+                user: item.user,
+                votedAt: item.votedAt.toISOString().split("T")[0],
+            }));
+        if (todayVotedUser.length === 0) {
+            return res.status(200).json({
+                success: true,
+                data: { openSessionCount: {}, closeSessionCount: {} },
+                message: "No votes found for today"
+            });
+        }
+        // Populate userVote.user with today's votes
+        const sameMarketOnTodayUsersVote = await CreateMarketModel.findById(marketId)
+            .populate({
+                path: "userVote.user",
+                select: "userGuestId votes",
+                match: {
+                    _id: { $in: todayVotedUser.map(item => item.user) },
+                    "votes.marketId": marketId,
+                    "votes.voteDate": {
+                        $gte: new Date(todayDate + "T00:00:00.000Z"),
+                        $lte: new Date(todayDate + "T23:59:59.999Z")
+                    }
+                }
+            })
+            .select("userVote")
+            .lean();
+
+        // Filter null users after populate
+        sameMarketOnTodayUsersVote.userVote = (sameMarketOnTodayUsersVote.userVote || [])
+            .filter(item => item.user !== null);
+        // Initialize counts for 0-9
+        const openSessionCount = {};
+        const closeSessionCount = {};
+        for (let i = 0; i <= 9; i++) {
+            openSessionCount[i] = 0;
+            closeSessionCount[i] = 0;
+        }
+        // Loop through userVote array safely
+        (sameMarketOnTodayUsersVote.userVote || []).forEach((uv) => {
+            if (!uv.user || !Array.isArray(uv.user.votes)) return;
+            uv.user.votes.forEach((vote) => {
+                if (Array.isArray(vote.openSessionVoteNumber)) {
+                    vote.openSessionVoteNumber.forEach(num => {
+                        if (num >= 0 && num <= 9) {
+                            openSessionCount[num] = (openSessionCount[num] || 0) + 1;
+                        }
+                    });
+                }
+                if (Array.isArray(vote.closeSessionVoteNumber)) {
+                    vote.closeSessionVoteNumber.forEach(num => {
+                        if (num >= 0 && num <= 9) {
+                            closeSessionCount[num] = (closeSessionCount[num] || 0) + 1;
+                        }
+                    });
+                }
+            });
         });
-        
+        const data = { openSessionCount, closeSessionCount };
+        return res.status(200).json({ success: true, data });
     } catch (error) {
-        console.log(error.message);
+        console.error("Error in userVoteCountOnNumber:", error);
         return res.status(500).json({ success: false, message: 'Internal Server Error' });
     }
 }
+
 module.exports = {
     createMarket,
     getAllMarket,
