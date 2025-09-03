@@ -139,7 +139,6 @@ const inActiveGuestUser = async (req, res) => {
     }
 }
 
-
 module.exports = {
     guestUser,
     getAllGuestUser,

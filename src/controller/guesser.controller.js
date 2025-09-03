@@ -94,37 +94,37 @@ const logoutGuesser = async (req, res) => {
     }
 };
 
-// Block guesser
-const blockGuesser = async (req, res) => {
-    try {
-        const guesserId= req.params.guesserId;
-        const isGuesser = await GuesserModel.findById(guesserId);
-        if (!isGuesser) return res.status(404).json({ success: false, message: "Guesser not found" });
-        if (isGuesser.isBlocked) return res.status(404).json({ success: false, message: "Guesser Already Unblock" });
-        isGuesser.isBlocked = false;
-        await isGuesser.save();
-        return res.status(200).json({ success: true, message: "Guesser unblocked successfully" });
-    } catch (error) {
-        console.error("Unblock error:", error);
-        return res.status(500).json({ success: false, message: "Internal Server Error" });
-    }
-};
+// // Block guesser
+// const blockGuesser = async (req, res) => {
+//     try {
+//         const guesserId= req.params.guesserId;
+//         const isGuesser = await GuesserModel.findById(guesserId);
+//         if (!isGuesser) return res.status(404).json({ success: false, message: "Guesser not found" });
+//         if (isGuesser.isBlocked) return res.status(404).json({ success: false, message: "Guesser Already Unblock" });
+//         isGuesser.isBlocked = false;
+//         await isGuesser.save();
+//         return res.status(200).json({ success: true, message: "Guesser unblocked successfully" });
+//     } catch (error) {
+//         console.error("Unblock error:", error);
+//         return res.status(500).json({ success: false, message: "Internal Server Error" });
+//     }
+// };
 
-// Unblock guesser
-const unblockGuesser = async (req, res) => {
-    try {
-        const guesserId= req.params.guesserId;
-        const isGuesser = await GuesserModel.findById(guesserId);
-        if (!isGuesser) return res.status(404).json({ success: false, message: "Guesser not found" });
-        if (isGuesser.isBlocked) return res.status(404).json({ success: false, message: "Guesser Already Unblock" });
-        isGuesser.isBlocked = false;
-        await isGuesser.save();
-        return res.status(200).json({ success: true, message: "Guesser unblocked successfully" });
-    } catch (error) {
-        console.error("Unblock error:", error);
-        return res.status(500).json({ success: false, message: "Internal Server Error" });
-    }
-};
+// // Unblock guesser
+// const unblockGuesser = async (req, res) => {
+//     try {
+//         const guesserId= req.params.guesserId;
+//         const isGuesser = await GuesserModel.findById(guesserId);
+//         if (!isGuesser) return res.status(404).json({ success: false, message: "Guesser not found" });
+//         if (isGuesser.isBlocked) return res.status(404).json({ success: false, message: "Guesser Already Unblock" });
+//         isGuesser.isBlocked = false;
+//         await isGuesser.save();
+//         return res.status(200).json({ success: true, message: "Guesser unblocked successfully" });
+//     } catch (error) {
+//         console.error("Unblock error:", error);
+//         return res.status(500).json({ success: false, message: "Internal Server Error" });
+//     }
+// };
 
 module.exports = {
     createGuesser,
@@ -132,6 +132,4 @@ module.exports = {
     topTenGuesser,
     loginGuesser,
     logoutGuesser,
-    blockGuesser,
-    unblockGuesser,
 }
