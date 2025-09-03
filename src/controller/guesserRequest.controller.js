@@ -20,7 +20,7 @@ const guesserRequest = async (req, res) => {
     }
 }
 
-// get status 
+// get status
 const checkGuesserRequestStatus = async (req, res) => {
     try {
         const guestUserMongooseId = req.params.guestUserMongooseId;
@@ -35,7 +35,7 @@ const checkGuesserRequestStatus = async (req, res) => {
     }
 }
 
-// change Status 
+// change Status
 const changeGuesserRequestStatus = async (req, res) => {
     try {
         const guesserRequestId = req.params.guesserRequestId;
@@ -66,18 +66,18 @@ const getPendingGuesser = async (req, res) => {
         console.error(error.message);
         return res.status(500).json({ success: false, message: "Internal Server Error" });
     }
-};
+}
 
 // Get All Approved Guesser Requests
 const getApprovedGuessers = async (req, res) => {
     try {
-        const approvedRequests = await GuesserRequestModel.find({ status: "approved" });
+        const approvedRequests = await GuesserRequestModel.find({ status: "approved" }).sort({ createdAt: -1 });
         return res.status(200).json({ success: true, data: approvedRequests });
     } catch (error) {
         console.error(error.message);
         return res.status(500).json({ success: false, message: "Internal Server Error" });
     }
-};
+}
 
 module.exports = {
     guesserRequest,

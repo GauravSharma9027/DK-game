@@ -1,3 +1,4 @@
+// const { jwtAuthVerifyMiddleware } = require("../middleware/jwtVerifyToken.middleware");
 const GuesserModel = require("../model/Guesser.model");
 const GuesserRequestModel = require("../model/GuesserRequest.model");
 const jwtGenerate = require('../utils/jwt.generate.utils');
@@ -7,6 +8,7 @@ const saltRounds = Number(process.env.SALT_ROUNDS) || 10;
 const createGuesser = async (req, res) => {
     try {
         if (!req.body) return res.status(400).json({ success: false, message: 'req.body not Found' });
+        console.log(req.body);
         const { guesserRequestId, password } = req.body;
         if (!guesserRequestId || !password) return res.status(400).json({ success: false, message: 'All fields are required' });
         const isGuesserRequest = await GuesserRequestModel.findById(guesserRequestId);
@@ -56,10 +58,11 @@ const loginGuesser = async (req, res) => {
     try {
         const { whatsAppNumber, password } = req.body;
         if (!whatsAppNumber || !password) return res.status(400).json({ success: false, message: "All field is Required." });
-        const isGuesser = await GuesserModel.findOne({ whatsAppNumber: whatsAppNumber }).select("-__v -voteByUser")
+        const isGuesser = await GuesserModel.findOne({ whatsAppNumber: whatsAppNumber }).select("-__v -voteByUser");
         if (!isGuesser) return res.status(400).json({ success: false, message: "Number is Not Registered." });
         const IsMatched = bcrypt.compareSync(password, isGuesser.password);
         if (!IsMatched) return res.status(400).json({ success: false, message: "Password Is Wrong" });
+        if (!isGuesser.isBlocked) return res.status(403).json({ success: false, message: "This Account is Blocked" });
         const payload = {
             guesserId: isGuesser._id,
             whatsAppNumber: isGuesser.whatsAppNumber,
@@ -91,6 +94,37 @@ const logoutGuesser = async (req, res) => {
     }
 };
 
+// Block guesser
+const blockGuesser = async (req, res) => {
+    try {
+        const guesserId= req.params.guesserId;
+        const isGuesser = await GuesserModel.findById(guesserId);
+        if (!isGuesser) return res.status(404).json({ success: false, message: "Guesser not found" });
+        if (isGuesser.isBlocked) return res.status(404).json({ success: false, message: "Guesser Already Unblock" });
+        isGuesser.isBlocked = false;
+        await isGuesser.save();
+        return res.status(200).json({ success: true, message: "Guesser unblocked successfully" });
+    } catch (error) {
+        console.error("Unblock error:", error);
+        return res.status(500).json({ success: false, message: "Internal Server Error" });
+    }
+};
+
+// Unblock guesser
+const unblockGuesser = async (req, res) => {
+    try {
+        const guesserId= req.params.guesserId;
+        const isGuesser = await GuesserModel.findById(guesserId);
+        if (!isGuesser) return res.status(404).json({ success: false, message: "Guesser not found" });
+        if (isGuesser.isBlocked) return res.status(404).json({ success: false, message: "Guesser Already Unblock" });
+        isGuesser.isBlocked = false;
+        await isGuesser.save();
+        return res.status(200).json({ success: true, message: "Guesser unblocked successfully" });
+    } catch (error) {
+        console.error("Unblock error:", error);
+        return res.status(500).json({ success: false, message: "Internal Server Error" });
+    }
+};
 
 module.exports = {
     createGuesser,
@@ -98,4 +132,6 @@ module.exports = {
     topTenGuesser,
     loginGuesser,
     logoutGuesser,
+    blockGuesser,
+    unblockGuesser,
 }

@@ -8,7 +8,8 @@ const userSchema = new Schema({
     votes: [{
         marketId: { type: mongoose.Schema.Types.ObjectId, ref: 'MarketModel' },
         openSessionVoteNumber: { type: [Number] },
-        closeSessionVoteNumber: { type: [Number] }
+        closeSessionVoteNumber: { type: [Number] },
+        voteDate: { type: Date, default: () => new Date() },
     }]
 }, {
     timestamps: true

@@ -6,6 +6,14 @@ const createMarketSchema = new Schema({
     openSession: { type: String, required: true, match: /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]\s?(AM|PM)?$/, },
     closeSession: { type: String, required: true, match: /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]\s?(AM|PM)?$/, },
     accountType: { type: String, enum: ["Guesser", "User"], required: true, },
+    guesserVote: [{
+        guesser: { type: mongoose.Schema.Types.ObjectId, ref: 'GuesserModel' },
+        votedAt: { type: Date, default: Date.now }
+    }],
+    userVote: [{
+        user: { type: mongoose.Schema.Types.ObjectId, ref: 'UserModel' },
+        votedAt: { type: Date, default: Date.now }
+    }],
     status: { type: String, enum: ["Active", "InActive"], required: true },
 }, {
     timestamps: true,

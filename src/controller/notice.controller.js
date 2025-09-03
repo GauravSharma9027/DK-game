@@ -61,16 +61,31 @@ const getActiveNotice = async (req, res) => {
 
 const getAllNotice = async (req, res) => {
     try {
-        const Notices = await NoticeModel.find();
+        const Notices = await NoticeModel.find().sort({ createdAt: -1 });
         return res.status(200).json({ success: true, data: Notices });
     } catch (error) {
         console.error("Error in getActiveNotice:", error.message);
         return res.status(500).json({ success: false, message: "Internal Server Error", error: error.message });
     }
 }
+
+const deleteNotice = async (req, res) => {
+    try {
+        const noticeId = req.params.noticeId;
+        if (!noticeId) return res.status(400).json({ success: false, message: 'Request Id Not Receive' });
+        const isDeleted = await NoticeModel.findByIdAndDelete(noticeId);
+        if (!isDeleted) return res.status(404).json({ success: false, message: 'Notice Not Found' });
+        return res.status(200).json({ success: true, message: 'Deleted Successfully' });
+    } catch (error) {
+        console.error("Error in getActiveNotice:", error.message);
+        return res.status(500).json({ success: false, message: "Internal Server Error", error: error.message });
+    }
+}
+
 module.exports = {
     createNotice,
     toggleNoticeStatus,
     getActiveNotice,
-    getAllNotice
+    getAllNotice,
+    deleteNotice
 }

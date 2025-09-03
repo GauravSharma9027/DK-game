@@ -43,11 +43,11 @@ const buttonVisible = async (req, res) => {
         if (isVisible) {
             isButton.visible = false;
             await isButton.save();
-            return res.status(200).json({ success: true, message: "Button is Hidden Successfully" });
+            return res.status(200).json({ success: true, message: "Button is Hidden Successfully",  data: isButton.visible});
         }
         isButton.visible = true;
         await isButton.save();
-        return res.status(200).json({ success: true, message: "Button is Visible Successfully" });
+        return res.status(200).json({ success: true, message: "Button is Visible Successfully", data: isButton.visible });
     } catch (error) {
         console.error("buttonVisible Error:", error.message);
         return res.status(500).json({ success: false, message: "Internal Server Error" });
