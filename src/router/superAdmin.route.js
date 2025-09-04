@@ -29,7 +29,7 @@ router.get('/admin/get-profile/:adminId', async (req, res, next) => {
 //     }
 // });
 
-router.put('/admin/Name/update', async (req, res, next) => {
+router.put('/admin/name/update', async (req, res, next) => {
     try {
         await updateSuperAdminName(req, res);
     } catch (error) {
