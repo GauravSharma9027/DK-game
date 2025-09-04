@@ -65,25 +65,66 @@ const deleteMarket = async (req, res) => {
 const guestUserIsVotedOnMarket = async (req, res) => {
     try {
         const { marketId, guestUserId } = req.body;
-        if (!mongoose.Types.ObjectId.isValid(guestUserId) || !mongoose.Types.ObjectId.isValid(marketId)) return res.status(400).json({ success: false, message: "guestUserId ID is required" });
-        const isMarket = await CreateMarketModel.findById(marketId)
+        if (!mongoose.Types.ObjectId.isValid(guestUserId) || !mongoose.Types.ObjectId.isValid(marketId)) {
+            return res.status(400).json({ success: false, message: "guestUserId or marketId is invalid" });
+        }
+
+        const isMarket = await CreateMarketModel.findById(marketId);
         const isGuestUser = await UserModel.findById(guestUserId);
-        if (!isMarket || !isGuestUser) return res.status(400).json({ success: false, message: "Market Or Guest User Not Exist" });
+        if (!isMarket || !isGuestUser) {
+            return res.status(400).json({ success: false, message: "Market Or Guest User Not Exist" });
+        }
+
         const today = new Date().toISOString().split("T")[0];
+
+        // check if user voted today
         const alreadyVoted = isMarket.userVote.find(
             (item) =>
                 item.user.toString() === guestUserId.toString() &&
                 item.votedAt.toISOString().split("T")[0] === today
-                // item.
         );
-        if (!alreadyVoted) return res.status(404).json({ success: false , message:"No Any vote"});
-        const data = await CreateMarketModel.findById(marketId).populate("userVote.user", "votes")
-        return res.status(200).json({ success: true, data: data });
+
+        if (!alreadyVoted) {
+            return res.status(404).json({ success: false, message: "No Any vote" });
+        }
+
+        // populate user with votes
+        const populatedMarket = await CreateMarketModel.findById(marketId)
+            .populate("userVote.user", "votes");
+
+        // filter only that user's info
+        const userVoteInfo = populatedMarket.userVote.find(
+            (uv) => uv.user._id.toString() === guestUserId.toString()
+        );
+
+        // अब उस user.votes को filter करेंगे
+        let filteredVotes = [];
+        if (userVoteInfo?.user?.votes?.length) {
+            filteredVotes = userVoteInfo.user.votes.filter(vote =>
+                vote.marketId.toString() === marketId.toString() &&
+                new Date(vote.voteDate).toISOString() === alreadyVoted.votedAt.toISOString()
+            );
+        }
+
+        return res.status(200).json({
+            success: true,
+            market: {
+                _id: populatedMarket._id,
+                marketName: populatedMarket.marketName,
+                openSession: populatedMarket.openSession,
+                closeSession: populatedMarket.closeSession
+            },
+            user: {
+                _id: userVoteInfo.user._id,
+                votes: filteredVotes
+            }
+        });
+
     } catch (error) {
         console.log(error.message);
         return res.status(500).json({ success: false, message: 'Internal Server Error' });
     }
-}
+};
 
 const userVoteCountOnNumber = async (req, res) => {
     try {

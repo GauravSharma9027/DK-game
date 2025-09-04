@@ -94,7 +94,7 @@ const guestUserVote = async (req, res) => {
         const alreadyVoted = isMarket.userVote.find(
             (item) =>
                 item.user.toString() === isGuestUser._id.toString() &&
-                item.votedAt.toISOString().split("T")[0] === today
+                item.votedAt.toISOString().split("T")[0] === today.toISOString().split("T")[0]
         );
 
         if (!alreadyVoted) {
