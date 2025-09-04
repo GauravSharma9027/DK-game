@@ -78,7 +78,7 @@ const loginGuesser = async (req, res) => {
         if (!isGuesser) return res.status(400).json({ success: false, message: "Number is Not Registered." });
         const IsMatched = bcrypt.compareSync(password, isGuesser.password);
         if (!IsMatched) return res.status(400).json({ success: false, message: "Password Is Wrong" });
-        if (!isGuesser.isBlocked) return res.status(403).json({ success: false, message: "This Account is Blocked" });
+        if (isGuesser.isBlocked) return res.status(403).json({ success: false, message: "This Account is Blocked" });
         const payload = {
             guesserId: isGuesser._id,
             whatsAppNumber: isGuesser.whatsAppNumber,
