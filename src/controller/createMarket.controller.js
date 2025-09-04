@@ -73,7 +73,8 @@ const guestUserIsVotedOnMarket = async (req, res) => {
         const alreadyVoted = isMarket.userVote.find(
             (item) =>
                 item.user.toString() === guestUserId.toString() &&
-                item.votedAt.toISOString().split("T")[0] === today
+                item.votedAt.toISOString().split("T")[0] === today 
+                // item.
         );
         if (!alreadyVoted) return res.status(404).json({ success: false , message:"No Any vote"});
         const data = await CreateMarketModel.findById(marketId).populate("userVote.user", "votes")

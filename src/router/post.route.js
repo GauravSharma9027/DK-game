@@ -18,7 +18,6 @@ router.get('/post/get-all', async (req, res, next) => {
     }
 });
 
-
 router.put('/post/guesser/posted/:marketId/:guesserId', async (req, res, next) => {
     try {
         await guesserIsVotedOnMarket(req, res);

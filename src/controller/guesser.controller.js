@@ -1,6 +1,7 @@
 // const { jwtAuthVerifyMiddleware } = require("../middleware/jwtVerifyToken.middleware");
 const GuesserModel = require("../model/Guesser.model");
 const GuesserRequestModel = require("../model/GuesserRequest.model");
+const PostModel = require("../model/Post.model");
 const jwtGenerate = require('../utils/jwt.generate.utils');
 const bcrypt = require("bcryptjs");
 const saltRounds = Number(process.env.SALT_ROUNDS) || 10;
@@ -41,6 +42,22 @@ const getAllGuesser = async (req, res) => {
         console.log(error.message);
         return res.status(500).json({ success: false, message: 'Internal Server Error' });
     }
+}
+
+const getGuesserPost = async (req, res) => {
+    try {
+        const GuesserId = req.params.guesserId;
+        if (!GuesserId) return res.status(400).json({ success: false, message: 'GuesserId not Received' });
+        const isGuesser = await GuesserModel.findById(GuesserId);
+        if (!isGuesser) return res.status(400).json({ success: false, message: 'Guesser is Not Exist' });
+        const guesserAllPost = await PostModel.find({ GuesserMongooseID: GuesserId });
+        if (!guesserAllPost || guesserAllPost.length === 0) return res.status(400).json({ success: false, message: 'No Any Post' });
+        return res.status(200).json({ success: true, data: guesserAllPost });
+    } catch (error) {
+        console.log(error.message);
+        return res.status(500).json({ success: false, message: 'Internal Server Error' });
+    }
+
 }
 
 const topTenGuesser = async (req, res) => {
@@ -145,6 +162,7 @@ const logoutGuesser = async (req, res) => {
 module.exports = {
     createGuesser,
     getAllGuesser,
+    getGuesserPost,
     topTenGuesser,
     loginGuesser,
     logoutGuesser,
