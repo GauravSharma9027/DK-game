@@ -90,6 +90,28 @@ const userVoteOnGuesser = async (req, res) => {
     }
 }
 
+const userIsVotedOnGuesser = async (req, res) => {
+    try {
+        if (!req.body) return res.status(400).json({ success: false, message: 'req.body not Received' });
+        const { guesserId, guestUserId } = req.body;
+        if (!mongoose.Types.ObjectId.isValid(guesserId) || !mongoose.Types.ObjectId.isValid(guestUserId)) return res.status(400).json({ success: false, message: 'guesserId or guestUserId is missing' });
+        const isGuestUser = await UserModel.findById(guestUserId);
+        if (!isGuestUser) return res.status(400).json({ success: false, message: 'Guest User Not Found' });
+        const isGuesser = await GuesserModel.findById(guesserId);
+        if (!isGuesser) return res.status(400).json({ success: false, message: 'Guesser Not Found' });
+        const today = new Date().toISOString().split("T")[0];
+        const guestUserVotedToday = isGuesser.voteByUser.find((item) =>
+            item.guestUser.toString() === guestUserId.toString() &&
+            item.votedAt.toISOString().split("T")[0] === today
+        );
+        if (!guestUserVotedToday) return res.status(200).json({ success: false, message: "Not Voted" });
+        return res.status(200).json({ success: true, message: "Is Voted" });
+    } catch (error) {
+        console.log(error.message);
+        return res.status(500).json({ success: false, message: 'Internal Server Error' });
+    }
+}
+
 const topTenGuesser = async (req, res) => {
     try {
         const Guessers = await GuesserModel.find().select("-password -__v -voteByUser").sort({ vote: -1 }).limit(10)
@@ -194,6 +216,7 @@ module.exports = {
     getAllGuesser,
     getGuesserPost,
     userVoteOnGuesser,
+    userIsVotedOnGuesser,
     topTenGuesser,
     loginGuesser,
     logoutGuesser,

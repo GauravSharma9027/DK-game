@@ -1,5 +1,5 @@
 const express = require('express');
-const { createGuesser, getAllGuesser, topTenGuesser, loginGuesser, logoutGuesser, changePassword, getGuesserPost, userVoteOnGuesser } = require('../controller/guesser.controller');
+const { createGuesser, getAllGuesser, topTenGuesser, loginGuesser, logoutGuesser, changePassword, getGuesserPost, userVoteOnGuesser, userIsVotedOnGuesser } = require('../controller/guesser.controller');
 const router = express.Router();
 
 // deviceID
@@ -30,6 +30,14 @@ router.post('/guesser/post/:guesserId', async (req, res, next) => {
 router.post('/guesser/vote-by-user', async (req, res, next) => {
     try {
         await userVoteOnGuesser(req, res);
+    } catch (err) {
+        next(err);
+    }
+});
+
+router.post('/guesser/user-isVoted', async (req, res, next) => {
+    try {
+        await userIsVotedOnGuesser(req, res);
     } catch (err) {
         next(err);
     }

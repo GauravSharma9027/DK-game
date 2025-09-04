@@ -68,22 +68,18 @@ const guestUserIsVotedOnMarket = async (req, res) => {
         if (!mongoose.Types.ObjectId.isValid(guestUserId) || !mongoose.Types.ObjectId.isValid(marketId)) {
             return res.status(400).json({ success: false, message: "guestUserId or marketId is invalid" });
         }
-
         const isMarket = await CreateMarketModel.findById(marketId);
         const isGuestUser = await UserModel.findById(guestUserId);
         if (!isMarket || !isGuestUser) {
             return res.status(400).json({ success: false, message: "Market Or Guest User Not Exist" });
         }
-
         const today = new Date().toISOString().split("T")[0];
-
         // check if user voted today
         const alreadyVoted = isMarket.userVote.find(
             (item) =>
                 item.user.toString() === guestUserId.toString() &&
                 item.votedAt.toISOString().split("T")[0] === today
         );
-
         if (!alreadyVoted) {
             return res.status(404).json({ success: false, message: "No Any vote" });
         }
