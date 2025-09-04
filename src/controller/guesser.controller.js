@@ -1,9 +1,10 @@
-// const { jwtAuthVerifyMiddleware } = require("../middleware/jwtVerifyToken.middleware");
+const { default: mongoose } = require("mongoose");
 const GuesserModel = require("../model/Guesser.model");
 const GuesserRequestModel = require("../model/GuesserRequest.model");
 const PostModel = require("../model/Post.model");
 const jwtGenerate = require('../utils/jwt.generate.utils');
 const bcrypt = require("bcryptjs");
+const UserModel = require("../model/User.model");
 const saltRounds = Number(process.env.SALT_ROUNDS) || 10;
 
 const createGuesser = async (req, res) => {
@@ -58,6 +59,34 @@ const getGuesserPost = async (req, res) => {
         return res.status(500).json({ success: false, message: 'Internal Server Error' });
     }
 
+}
+
+const userVoteOnGuesser = async (req, res) => {
+    try {
+        if (!req.body) return res.status(400).json({ success: false, message: 'req.body not Received' });
+        const { guesserId, guestUserId } = req.body;
+        if (!mongoose.Types.ObjectId.isValid(guesserId) || !mongoose.Types.ObjectId.isValid(guestUserId)) return res.status(400).json({ success: false, message: 'guesserId or guestUserId is missing' });
+        const isGuestUser = await UserModel.findById(guestUserId);
+        if (!isGuestUser) return res.status(400).json({ success: false, message: 'Guest User Not Found' });
+        const isGuesser = await GuesserModel.findById(guesserId);
+        if (!isGuesser) return res.status(400).json({ success: false, message: 'Guesser Not Found' });
+        const today = new Date().toISOString().split("T")[0];
+        const guestUserVotedToday = isGuesser.voteByUser.find((item) =>
+            item.guestUser.toString() === guestUserId.toString() &&
+            item.votedAt.toISOString().split("T")[0] === today
+        );
+        if (guestUserVotedToday) return res.status(400).json({ success: true, message: "You can vote again after 12 AM" });
+        const newVote = {
+            guestUser: guestUserId,
+            votedAt: new Date()
+        }
+        isGuesser.voteByUser.push(newVote);
+        await isGuesser.save();
+        return res.status(200).json({ success: true, message: "Vote successfully" });
+    } catch (error) {
+        console.log(error.message);
+        return res.status(500).json({ success: false, message: 'Internal Server Error' });
+    }
 }
 
 const topTenGuesser = async (req, res) => {
@@ -163,6 +192,7 @@ module.exports = {
     createGuesser,
     getAllGuesser,
     getGuesserPost,
+    userVoteOnGuesser,
     topTenGuesser,
     loginGuesser,
     logoutGuesser,

@@ -91,7 +91,6 @@ const guestUserVote = async (req, res) => {
         };
         if (openSessionVoteNumber && openSessionVoteNumber.length > 0) { newVote.openSessionVoteNumber = openSessionVoteNumber; }
         if (closeSessionVoteNumber && closeSessionVoteNumber.length > 0) { newVote.closeSessionVoteNumber = closeSessionVoteNumber; }
-
         const alreadyVoted = isMarket.userVote.find(
             (item) =>
                 item.user.toString() === isGuestUser._id.toString() &&

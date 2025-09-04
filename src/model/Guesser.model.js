@@ -9,7 +9,10 @@ const guesserSchema = new Schema({
     whatsAppNumber: { type: Number, required: true, trim: true },
     password: { type: String, required: true, trim: true },
     isBlocked: { type: Boolean, enum: [true, false], default: false },
-    voteByUser: [{ type: mongoose.Schema.Types.ObjectId, ref: 'UserModel', default: [] }],
+    voteByUser: [{
+        guestUser: { type: mongoose.Schema.Types.ObjectId, ref: 'UserModel'},
+        votedAt: { type: Date, default: Date.now }
+    }],
     vote: { type: Number, required: true, trim: true, default: 0 },
     reason: { type: String, required: true, trim: true },
     status: { type: String, enum: ["Active", "InActive"], default: "Active", required: true }
