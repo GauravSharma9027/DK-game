@@ -20,7 +20,8 @@ const guesserRequestSchema = new Schema({
         }
     },
     reason: { type: String, required: true, trim: true },
-    status: { type: String, enum: ["pending", "approved", "rejected"], default: "pending", required: true }
+    status: { type: String, enum: ["pending", "approved", "rejected"], default: "pending", required: true },
+    credentialCreated: { type: String, enum: ["created", "notCreated"], default: "notCreated", required: true }
 }, {
     timestamps: true,
 });

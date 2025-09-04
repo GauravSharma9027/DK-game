@@ -62,13 +62,13 @@ const getAllGuestUser = async (req, res) => {
 const guestUserVote = async (req, res) => {
     try {
         if (!req.body) return res.status(400).json({ success: false, message: 'req.body not Found' });
-        const { deviceID, marketId, openSessionVoteNumber, closeSessionVoteNumber } = req.body;
-        if (!deviceID || !marketId) return res.status(400).json({ success: false, message: 'All fields are required' });
+        const { guestUserMongooseID, marketId, openSessionVoteNumber, closeSessionVoteNumber } = req.body;
+        if (!guestUserMongooseID || !marketId) return res.status(400).json({ success: false, message: 'All fields are required' });
         if ((!openSessionVoteNumber || openSessionVoteNumber.length === 0) && (!closeSessionVoteNumber || closeSessionVoteNumber.length === 0)) return res.status(400).json({ success: false, message: 'All fields are required' });
         if (!mongoose.Types.ObjectId.isValid(marketId)) return res.status(400).json({ success: false, message: "Invalid marketId" });
         const isMarket = await CreateMarketModel.findById(marketId);
         if (!isMarket) return res.status(400).json({ success: false, message: "Invalid Market" });
-        const isGuestUser = await UserModel.findOne({ deviceID });
+        const isGuestUser = await UserModel.findOne({ guestUserMongooseID });
         if (!isGuestUser) return res.status(400).json({ success: false, message: 'User not found' });
         const isSameDay = (d1, d2) =>
             d1.getFullYear() === d2.getFullYear() &&

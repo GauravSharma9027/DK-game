@@ -8,7 +8,6 @@ const saltRounds = Number(process.env.SALT_ROUNDS) || 10;
 const createGuesser = async (req, res) => {
     try {
         if (!req.body) return res.status(400).json({ success: false, message: 'req.body not Found' });
-        console.log(req.body);
         const { guesserRequestId, password } = req.body;
         if (!guesserRequestId || !password) return res.status(400).json({ success: false, message: 'All fields are required' });
         const isGuesserRequest = await GuesserRequestModel.findById(guesserRequestId);
@@ -48,6 +47,23 @@ const topTenGuesser = async (req, res) => {
     try {
         const Guessers = await GuesserModel.find().select("-password -__v -voteByUser").sort({ vote: -1 }).limit(10)
         return res.status(200).json({ success: true, data: Guessers });
+    } catch (error) {
+        console.log(error.message);
+        return res.status(500).json({ success: false, message: 'Internal Server Error' });
+    }
+}
+
+const changePassword = async (req, res) => {
+    try {
+        if (!req.body) return res.status(400).json({ success: false, message: 'req.body not Found' });
+        const { number, password } = req.body;
+        if (!number || !password) return res.status(400).json({ success: false, message: 'All fields are required' });
+        const isGuesser = await GuesserModel.findOne({ whatsAppNumber: number });
+        if (!isGuesser || isGuesser.length === 0) return res.status(400).json({ success: false, message: 'Guesser Not Found Or Miss Match Number' });
+        const hashedPassword = bcrypt.hashSync(password, saltRounds);
+        isGuesser.password = hashedPassword;
+        await isGuesser.save();
+        return res.status(201).json({ success: true, message: "Password Change successfully" });
     } catch (error) {
         console.log(error.message);
         return res.status(500).json({ success: false, message: 'Internal Server Error' });
@@ -132,4 +148,5 @@ module.exports = {
     topTenGuesser,
     loginGuesser,
     logoutGuesser,
+    changePassword,
 }

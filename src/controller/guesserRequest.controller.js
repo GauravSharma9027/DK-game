@@ -47,6 +47,7 @@ const changeGuesserRequestStatus = async (req, res) => {
             if (!isGuesserRequest) return res.status(404).json({ success: false, message: 'This Guesser Request is not Found' });
             if (isGuesserRequest.status === "rejected" || isGuesserRequest.status === "approved") return res.status(400).json({ success: false, message: 'Guesser Request status already updated' });
             isGuesserRequest.status = status;
+            isGuesserRequest.credentialCreated = "created";
             isGuesserRequest.save();
             return res.status(200).json({ success: true, message: 'Status Updated Successfully' });
         }
@@ -71,7 +72,7 @@ const getPendingGuesser = async (req, res) => {
 // Get All Approved Guesser Requests
 const getApprovedGuessers = async (req, res) => {
     try {
-        const approvedRequests = await GuesserRequestModel.find({ status: "approved" }).sort({ createdAt: -1 });
+        const approvedRequests = await GuesserRequestModel.find({ status: "approved", credentialCreated: "notCreated" }).sort({ createdAt: -1 });
         return res.status(200).json({ success: true, data: approvedRequests });
     } catch (error) {
         console.error(error.message);
