@@ -11,7 +11,7 @@ app.use(cookieParser())
 
 app.use(cors({
     origin: ["https://dk-game.onrender.com", "http://localhost:5173"],
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"], // ✅ uppercase + OPTIONS
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
 }));

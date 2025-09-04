@@ -65,17 +65,13 @@ const guestUserVote = async (req, res) => {
         const { guestUserMongooseID, marketId, openSessionVoteNumber, closeSessionVoteNumber } = req.body;
         if (!guestUserMongooseID || !marketId) return res.status(400).json({ success: false, message: 'All fields are required' });
         if ((!openSessionVoteNumber || openSessionVoteNumber.length === 0) && (!closeSessionVoteNumber || closeSessionVoteNumber.length === 0)) return res.status(400).json({ success: false, message: 'All fields are required' });
-        if (!mongoose.Types.ObjectId.isValid(marketId)) return res.status(400).json({ success: false, message: "Invalid marketId" });
+        if (!mongoose.Types.ObjectId.isValid(marketId) || !mongoose.Types.ObjectId.isValid(guestUserMongooseID)) return res.status(400).json({ success: false, message: "Invalid marketId or guestUserId" });
         const isMarket = await CreateMarketModel.findById(marketId);
         if (!isMarket) return res.status(400).json({ success: false, message: "Invalid Market" });
-        const isGuestUser = await UserModel.findOne({ guestUserMongooseID });
+        const isGuestUser = await UserModel.findById(guestUserMongooseID);
         if (!isGuestUser) return res.status(400).json({ success: false, message: 'User not found' });
-        const isSameDay = (d1, d2) =>
-            d1.getFullYear() === d2.getFullYear() &&
-            d1.getMonth() === d2.getMonth() &&
-            d1.getDate() === d2.getDate();
-        const today = new Date();
-        const existingVote = isGuestUser.votes.find((item) => item.marketId.toString() === marketId && isSameDay(new Date(item.voteDate), today));
+        const today = new Date().toISOString().split("T")[0];
+        const existingVote = isGuestUser.votes.find((item) => item.marketId?.toString() === marketId && item.voteDate?.toISOString().split("T")[0] === today);
         if (existingVote) {
             if ((openSessionVoteNumber && existingVote.openSessionVoteNumber?.length > 0) || (closeSessionVoteNumber && existingVote.closeSessionVoteNumber?.length > 0)) {
                 return res.status(400).json({ success: false, message: 'You can vote again after 12 AM' });
@@ -145,5 +141,5 @@ module.exports = {
     guestUserVote,
     activeGuestUser,
     inActiveGuestUser,
-    
+
 }
