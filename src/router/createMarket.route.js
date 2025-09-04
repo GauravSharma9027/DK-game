@@ -34,7 +34,7 @@ router.delete('/create/market/delete/:createdMarketId', async (req, res, next) =
     }
 });
 
-router.put('/create/market/guest-user/voted/:marketId/:guestUserId', async (req, res, next) => {
+router.post('/create/market/guest-user/voted', async (req, res, next) => {
     try {
         await guestUserIsVotedOnMarket(req, res);
     } catch (error) {

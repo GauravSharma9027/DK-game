@@ -64,7 +64,7 @@ const deleteMarket = async (req, res) => {
 
 const guestUserIsVotedOnMarket = async (req, res) => {
     try {
-        const { marketId, guestUserId } = req.params;
+        const { marketId, guestUserId } = req.body;
         if (!mongoose.Types.ObjectId.isValid(guestUserId) || !mongoose.Types.ObjectId.isValid(marketId)) return res.status(400).json({ success: false, message: "guestUserId ID is required" });
         const isMarket = await CreateMarketModel.findById(marketId)
         const isGuestUser = await UserModel.findById(guestUserId);
@@ -75,7 +75,7 @@ const guestUserIsVotedOnMarket = async (req, res) => {
                 item.user.toString() === guestUserId.toString() &&
                 item.votedAt.toISOString().split("T")[0] === today
         );
-        if (!alreadyVoted) return res.status(404).json({ success: false });
+        if (!alreadyVoted) return res.status(404).json({ success: false , message:"No Any vote"});
         const data = await CreateMarketModel.findById(marketId).populate("userVote.user", "votes")
         return res.status(200).json({ success: true, data: data });
     } catch (error) {
