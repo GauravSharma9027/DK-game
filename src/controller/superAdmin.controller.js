@@ -34,7 +34,6 @@ const loginSuperAdmin = asyncHandler(async (req, res) => {
 /** GET /api/super-admin/me */
 const getSuperAdminProfile = asyncHandler(async (req, res) => {
     try {
-        console.log("req.params.adminId: ", req.params.adminId);
         const admin = await SuperAdminModel.findById(req.params.adminId);
         if (!admin) throw new ApiError(404, "Super admin not found");
         return res.status(200).json(new ApiResponse(200, admin));

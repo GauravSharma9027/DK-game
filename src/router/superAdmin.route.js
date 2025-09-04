@@ -12,7 +12,7 @@ router.post('/admin/login', async (req, res, next) => {
 });
 router.use(verifySuperAdmin);
 
-router.get('/admin/get-profile/:adminId', async (req, res, next) => {
+router.post('/admin/get-profile/:adminId', async (req, res, next) => {
     try {
         await getSuperAdminProfile(req, res);
     } catch (error) {
