@@ -111,7 +111,7 @@ const guestUserVote = async (req, res) => {
     }
 }
 
-// user active 
+// user active
 const activeGuestUser = async (req, res) => {
     try {
         const thresholdDate = new Date(Date.now() - THRESHOLD_HOURS * 60 * 60 * 1000);
@@ -123,7 +123,7 @@ const activeGuestUser = async (req, res) => {
     }
 }
 
-// user inactive 
+// user inactive
 const inActiveGuestUser = async (req, res) => {
     try {
         const thresholdDate = new Date(Date.now() - THRESHOLD_HOURS * 60 * 60 * 1000);
@@ -141,5 +141,4 @@ module.exports = {
     guestUserVote,
     activeGuestUser,
     inActiveGuestUser,
-
 }

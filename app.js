@@ -26,7 +26,7 @@ const guesserRouter = require('./src/router/guesser.route');
 const contactUsRouter = require('./src/router/contactUs.route');
 const noticeRouter = require('./src/router/notice.route');
 const postRouter = require('./src/router/post.route');
-// const superAdminRouter = require('./src/router/superAdmin.route');
+const superAdminRouter = require('./src/router/superAdmin.route');
 
 app.use('/api/d2k/', userRouter)
 app.use('/api/d2k/', marketNameRouter);
@@ -37,7 +37,7 @@ app.use('/api/d2k/', guesserRouter);
 app.use('/api/d2k/', contactUsRouter);
 app.use('/api/d2k/', noticeRouter);
 app.use('/api/d2k/', postRouter);
-// app.use("/api/d2k/super-admin", superAdminRouter);
+app.use("/api/d2k/super-admin", superAdminRouter);
 
 app.use((err, req, res, next) => {
     console.error(err.stack);

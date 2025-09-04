@@ -1,7 +1,5 @@
-// models/SuperAdmin.model.js
-import mongoose from "mongoose";
-import bcrypt from "bcrypt";
-
+const mongoose = require("mongoose")
+const bcrypt = require('bcryptjs')
 const SuperAdminSchema = new mongoose.Schema(
     {
         fullName: { type: String, required: true, trim: true },
@@ -55,4 +53,4 @@ SuperAdminSchema.statics.seedSuperAdminIfNeeded = async function () {
     return true;
 };
 
-export const SuperAdminModel = mongoose.model("SuperAdminModel", SuperAdminSchema);
+module.exports = mongoose.model("SuperAdminModel", SuperAdminSchema);
