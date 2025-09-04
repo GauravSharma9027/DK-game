@@ -81,6 +81,7 @@ const userVoteOnGuesser = async (req, res) => {
             votedAt: new Date()
         }
         isGuesser.voteByUser.push(newVote);
+        isGuesser.vote = isGuesser.voteByUser.length;
         await isGuesser.save();
         return res.status(200).json({ success: true, message: "Vote successfully" });
     } catch (error) {
