@@ -70,8 +70,8 @@ const guestUserVote = async (req, res) => {
         if (!isMarket) return res.status(400).json({ success: false, message: "Invalid Market" });
         const isGuestUser = await UserModel.findById(guestUserMongooseID);
         if (!isGuestUser) return res.status(400).json({ success: false, message: 'User not found' });
-        const today = new Date().toISOString().split("T")[0];
-        const existingVote = isGuestUser.votes.find((item) => item.marketId?.toString() === marketId && item.voteDate?.toISOString().split("T")[0] === today);
+        const today = new Date();
+        const existingVote = isGuestUser.votes.find((item) => item.marketId?.toString() === marketId && item.voteDate?.toISOString().split("T")[0] === today.toISOString().split("T")[0]);
         if (existingVote) {
             if ((openSessionVoteNumber && existingVote.openSessionVoteNumber?.length > 0) || (closeSessionVoteNumber && existingVote.closeSessionVoteNumber?.length > 0)) {
                 return res.status(400).json({ success: false, message: 'You can vote again after 12 AM' });
