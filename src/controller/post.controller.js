@@ -105,7 +105,7 @@ const getPostById = async (req, res) => {
 
 const guesserIsVotedOnMarket = async (req, res) => {
     try {
-        const { marketId, guesserId } = req.params;
+        const { marketId, guesserId } = req.body;
         if (!mongoose.Types.ObjectId.isValid(guesserId) || !mongoose.Types.ObjectId.isValid(marketId)) return res.status(400).json({ success: false, message: "guestUserId or marketId ID is Missing" });
         const isMarket = await CreateMarketModel.findById(marketId)
         const isGuesser = await GuesserModel.findById(guesserId);
