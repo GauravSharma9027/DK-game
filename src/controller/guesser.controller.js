@@ -37,8 +37,18 @@ const createGuesser = async (req, res) => {
 
 const getAllGuesser = async (req, res) => {
     try {
-        const Guessers = await GuesserModel.find().select("-password -__v -voteByUser");
+        const Guessers = await GuesserModel.find().select("-password -__v -voteByUser").sort({ vote: -1 }); ;
         return res.status(200).json({ success: true, data: Guessers });
+    } catch (error) {
+        console.log(error.message);
+        return res.status(500).json({ success: false, message: 'Internal Server Error' });
+    }
+}
+
+const getAllGuesserCount = async (req, res) => {
+    try {
+        const Guessers = await GuesserModel.find().select("-password -__v -voteByUser").sort({ vote: -1 }); ;
+        return res.status(200).json({ success: true, data: Guessers.length });
     } catch (error) {
         console.log(error.message);
         return res.status(500).json({ success: false, message: 'Internal Server Error' });
@@ -214,6 +224,7 @@ const logoutGuesser = async (req, res) => {
 module.exports = {
     createGuesser,
     getAllGuesser,
+    getAllGuesserCount,
     getGuesserPost,
     userVoteOnGuesser,
     userIsVotedOnGuesser,

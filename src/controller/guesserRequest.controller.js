@@ -80,10 +80,22 @@ const getApprovedGuessers = async (req, res) => {
     }
 }
 
+// Get All Rejected Guesser Requests
+const getRejectedGuessers = async (req, res) => {
+    try {
+        const rejectedRequests = await GuesserRequestModel.find({ status: "rejected",credentialCreated: "notCreated" }).sort({ createdAt: -1 });
+        return res.status(200).json({ success: true, data: rejectedRequests });
+    } catch (error) {
+        console.error(error.message);
+        return res.status(500).json({ success: false, message: "Internal Server Error" });
+    }
+}
+
 module.exports = {
     guesserRequest,
     changeGuesserRequestStatus,
     getPendingGuesser,
     getApprovedGuessers,
+    getRejectedGuessers,
     checkGuesserRequestStatus
 }

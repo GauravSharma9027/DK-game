@@ -1,5 +1,5 @@
 const express = require('express');
-const { guesserRequest, changeGuesserRequestStatus, getPendingGuesser, getApprovedGuessers, checkGuesserRequestStatus } = require('../controller/guesserRequest.controller');
+const { guesserRequest, changeGuesserRequestStatus, getPendingGuesser, getApprovedGuessers, checkGuesserRequestStatus, getRejectedGuessers } = require('../controller/guesserRequest.controller');
 const router = express.Router();
 
 router.post('/guesser/request', async (req, res, next) => {
@@ -37,6 +37,14 @@ router.get('/guesser/request/get-pending', async (req, res, next) => {
 router.get('/guesser/request/get-approved', async (req, res, next) => {
     try {
         await getApprovedGuessers(req, res);
+    } catch (error) {
+        next(error);
+    }
+});
+
+router.get('/guesser/request/get-rejected', async (req, res, next) => {
+    try {
+        await getRejectedGuessers(req, res);
     } catch (error) {
         next(error);
     }

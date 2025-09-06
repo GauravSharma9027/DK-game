@@ -134,10 +134,84 @@ const inActiveGuestUser = async (req, res) => {
     }
 }
 
+const getMarketVotes = async (req, res) => {
+    try {
+        const { marketId, sessionType, filter } = req.body;
+
+        if (!marketId || !sessionType || !filter) {
+            return res.status(400).json({
+                success: false,
+                data: Array(10).fill(0),
+                message: "Something is missing"
+            });
+        }
+
+        if (!mongoose.Types.ObjectId.isValid(marketId)) {
+            return res.status(400).json({
+                success: false,
+                data: Array(10).fill(0),
+                message: "Invalid Market ID"
+            });
+        }
+
+        // build query
+        let query = { "votes.marketId": marketId };
+
+        // today filter
+        if (filter === "today") {
+            const start = new Date();
+            start.setHours(0, 0, 0, 0);
+            const end = new Date();
+            end.setHours(23, 59, 59, 999);
+            query["votes.voteDate"] = { $gte: start, $lte: end };
+        }
+
+        // fetch users
+        const users = await UserModel.find(query).lean();
+
+        // Always initialize frequency
+        let frequency = Array(10).fill(0);
+
+        if (users && users.length > 0) {
+            users.forEach(user => {
+                user.votes.forEach(vote => {
+                    if (vote.marketId.toString() === marketId) {
+                        let numbers = [];
+                        if (sessionType === "openSession") {
+                            numbers = vote.openSessionVoteNumber || [];
+                        } else if (sessionType === "closeSession") {
+                            numbers = vote.closeSessionVoteNumber || [];
+                        }
+                        numbers.forEach(num => {
+                            if (num >= 0 && num <= 9) {
+                                frequency[num] += 1;
+                            }
+                        });
+                    }
+                });
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            data: frequency,
+        });
+
+    } catch (error) {
+        console.error("getMarketVotes error:", error.message);
+        return res.status(500).json({
+            success: false,
+            data: Array(10).fill(0),
+            message: error.message
+        });
+    }
+};
+
 module.exports = {
     guestUser,
     getAllGuestUser,
     guestUserVote,
     activeGuestUser,
     inActiveGuestUser,
+    getMarketVotes,
 }
