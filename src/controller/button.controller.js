@@ -43,7 +43,7 @@ const buttonVisible = async (req, res) => {
         if (isVisible) {
             isButton.visible = false;
             await isButton.save();
-            return res.status(200).json({ success: true, message: "Button is Hidden Successfully",  data: isButton.visible});
+            return res.status(200).json({ success: true, message: "Button is Hidden Successfully", data: isButton.visible });
         }
         isButton.visible = true;
         await isButton.save();
@@ -54,12 +54,73 @@ const buttonVisible = async (req, res) => {
     }
 }
 
-// changeButtonName
-// changeButtonLink
+const updateButton = async (req, res) => {
+    try {
+        const { id, newName, newLink } = req.body;
+
+        if (!id) {
+            return res.status(400).json({
+                success: false,
+                message: "Button id is required",
+            });
+        }
+
+        // find button by id
+        const button = await ButtonModel.findById(id);
+        if (!button) {
+            return res.status(404).json({
+                success: false,
+                message: "Button not found",
+            });
+        }
+
+        let updateData = {};
+
+        // RULES based on DB SNo
+        if (button.SNo === 1 || button.SNo === 6) {
+            if (newName) updateData.buttonName = newName;
+            if (newLink) updateData.buttonLink = newLink;
+        } else if (button.SNo === 2 || button.SNo === 7) {
+            if (newLink) updateData.buttonLink = newLink;
+            if (newName) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Name cannot be changed for this S.no",
+                });
+            }
+        } else {
+            return res.status(400).json({
+                success: false,
+                message: "This button is not changeable",
+            });
+        }
+
+        // update button
+        const updatedButton = await ButtonModel.findByIdAndUpdate(
+            id,
+            { $set: updateData },
+            { new: true }
+        );
+
+        return res.status(200).json({
+            success: true,
+            message: "Button updated successfully",
+            data: updatedButton,
+        });
+    } catch (error) {
+        console.error("Error updating button:", error.message);
+        return res.status(500).json({
+            success: false,
+            message: "Internal server error",
+            error: error.message,
+        });
+    }
+};
 
 module.exports = {
     createButton,
     getAllButtons,
     buttonVisible,
+    updateButton,
 }
 

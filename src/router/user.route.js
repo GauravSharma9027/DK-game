@@ -19,7 +19,6 @@ router.get('/guest/user/get-all', async (req, res, next) => {
     }
 })
 
-// deviceID, marketId(mongoDB Id), [openSessionVoteNumber(array) Or closeSessionVoteNumber(array)]
 router.post('/guest/user/vote', async (req, res, next) => {
     try {
         await guestUserVote(req, res);
