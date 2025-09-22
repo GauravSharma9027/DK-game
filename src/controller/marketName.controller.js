@@ -1,5 +1,5 @@
 
-const MarketNameModel = require('../model/marketName.model');
+// const MarketNameModel = require('../model/marketName.model');
 
 // const addMarketName = async (req, res) => {
 //     try {
