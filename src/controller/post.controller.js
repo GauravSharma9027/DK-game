@@ -1,7 +1,10 @@
-const { default: mongoose } = require("mongoose");
+const mongoose = require("mongoose");
 const PostModel = require("../model/Post.model");
 const CreateMarketModel = require("../model/CreateMarket.model");
 const GuesserModel = require("../model/Guesser.model");
+const FormData = require("form-data");
+const axios = require("axios");
+const qs = require("qs");
 
 // create Post
 const createPost = async (req, res) => {
@@ -137,4 +140,170 @@ const guesserIsVotedOnMarket = async (req, res) => {
         return res.status(500).json({ success: false, message: 'Internal Server Error' });
     }
 }
-module.exports = { createPost, getAllPosts, getPostById, guesserIsVotedOnMarket };
+
+// Step 1: Get API token
+async function getApiToken(username, password) {
+    try {
+        const payload = qs.stringify({ username, password });
+        const res = await axios.post(
+            "https://matkawebhook.matka-api.online/get-refresh-token",
+            payload,
+            { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
+        );
+
+        if (res.data?.status && res.data?.refresh_token) return res.data.refresh_token;
+        throw new Error(JSON.stringify(res.data));
+    } catch (err) {
+        console.error("getApiToken Error:", err.message);
+        throw err;
+    }
+}
+
+// Step 2: Get Market Data
+async function getMarketData(username, API_token, market_name, date) {
+    try {
+        const formData = new FormData();
+        formData.append("username", username);
+        formData.append("API_token", API_token);
+        formData.append("markte_name", market_name);
+        formData.append("date", date);
+
+        const res = await axios.post(
+            "https://matkawebhook.matka-api.online/market-data",
+            formData,
+            {
+                headers: {
+                    ...formData.getHeaders(),
+                    Cookie: "ci_session=diooc980vjeqern5a9g6jq3oil0ep8he",
+                },
+            }
+        );
+
+        if (!res?.data?.old_result_starline || res?.data?.old_result_starline === 0) {
+            return [];
+        }
+
+        return res.data.old_result_starline; // return only old_result_starline
+    } catch (err) {
+        console.error("getMarketData Error:", err.response?.data || err.message);
+        throw new Error("Failed to fetch market data");
+    }
+}
+
+// Step 3: Evaluate single post
+async function evaluateSinglePost(post, username, password) {
+    try {
+        const yesterday = new Date();
+        yesterday.setUTCHours(0, 0, 0, 0);
+        yesterday.setUTCDate(yesterday.getUTCDate() - 1);
+        const yyyy = yesterday.getUTCFullYear();
+        const mm = String(yesterday.getUTCMonth() + 1).padStart(2, "0");
+        const dd = String(yesterday.getUTCDate()).padStart(2, "0");
+        const yesterdayStr = `${yyyy}-${mm}-${dd}`;
+
+        const postDateStr = post.createdAt ? new Date(post.createdAt).toISOString().slice(0, 10) : null;
+        if (postDateStr !== yesterdayStr) {
+            post.result = ["Pending"];
+            await post.save();
+            return post.result;
+        }
+
+        const API_token = await getApiToken(username, password);
+        const oldResultsStarline = await getMarketData(username, API_token, post.market, yesterdayStr);
+        if (!oldResultsStarline.length) {
+            post.result = ["Pending"];
+            await post.save();
+            return post.result;
+        }
+
+        const normalize = str => (str || "").trim().toUpperCase();
+        const matchingMarkets = oldResultsStarline.filter(m => normalize(m.market_name) === normalize(post.market));
+        if (!matchingMarkets.length) {
+            post.result = ["Pending"];
+            await post.save();
+            return post.result;
+        }
+
+        let marketData = matchingMarkets.find(m => {
+            const mDate = new Date(m.aankdo_date);
+            const formatted = `${mDate.getFullYear()}-${String(mDate.getMonth() + 1).padStart(2, "0")}-${String(mDate.getDate()).padStart(2, "0")}`;
+            return formatted === yesterdayStr;
+        });
+
+        if (!marketData) {
+            marketData = matchingMarkets.sort((a, b) => new Date(b.aankdo_date) - new Date(a.aankdo_date))[0];
+        }
+
+        const toNumber = val => Number(String(val || "").trim());
+        const figure_open = toNumber(marketData.figure_open);
+        const figure_close = toNumber(marketData.figure_close);
+        const aankdo_open = toNumber(marketData.aankdo_open);
+        const aankdo_close = toNumber(marketData.aankdo_close);
+        const jodi = toNumber(marketData.jodi);
+
+        const singleArray = (post.single || []).map(toNumber);
+        const panaArray = (post.pana || []).map(toNumber);
+        const jodiArray = (post.jodi || []).map(toNumber);
+
+        let wins = [];
+        if (post.session === "Open") {
+            if (singleArray.includes(figure_open)) wins.push(`Single Win (${figure_open})`);
+            if (panaArray.includes(aankdo_open)) wins.push(`Pana Win (${aankdo_open})`);
+            if (jodiArray.includes(jodi)) wins.push(`Jodi Win (${jodi})`);
+        } else if (post.session === "Close") {
+            if (singleArray.includes(figure_close)) wins.push(`Single Win (${figure_close})`);
+            if (panaArray.includes(aankdo_close)) wins.push(`Pana Win (${aankdo_close})`);
+        }
+
+        post.result = wins.length ? wins : ["Loss"];
+        await post.save();
+        return post.result;
+
+    } catch (err) {
+        console.error("evaluateSinglePost Error:", err.message);
+        post.result = ["Pending"];
+        await post.save();
+        return post.result;
+    }
+}
+
+// Step 4: Get Yesterday Win Posts
+const getYesterdayWinAllPosts = async (req, res) => {
+    try {
+        const username = "8168021120";
+        const password = "Deepak@8562";
+
+        const yesterday = new Date();
+        yesterday.setUTCHours(0, 0, 0, 0);
+        yesterday.setUTCDate(yesterday.getUTCDate() - 1);
+        const yyyy = yesterday.getUTCFullYear();
+        const mm = String(yesterday.getUTCMonth() + 1).padStart(2, "0");
+        const dd = String(yesterday.getUTCDate()).padStart(2, "0");
+        const yesterdayStr = `${yyyy}-${mm}-${dd}`;
+
+        // Fetch all posts
+        const posts = await PostModel.find().populate("GuesserMongooseID", "name email");
+
+        // Evaluate each post
+        for (let post of posts) {
+            await evaluateSinglePost(post, username, password);
+        }
+
+        // Fetch updated posts and filter yesterday's wins
+        const updatedPosts = await PostModel.find().populate("GuesserMongooseID", "name email");
+
+        const filteredPosts = updatedPosts.filter(post => {
+            const postDateStr = post.createdAt ? new Date(post.createdAt).toISOString().slice(0, 10) : null;
+            const hasWin = Array.isArray(post.result) && post.result.some(r => r !== "Loss" && r !== "Pending");
+            return postDateStr === yesterdayStr && hasWin;
+        });
+
+        return res.status(200).json({ success: true, posts: filteredPosts });
+
+    } catch (error) {
+        console.error("getYesterdayWinAllPosts Error:", error);
+        res.status(500).json({ success: false, message: "Server error" });
+    }
+};
+
+module.exports = { createPost, getAllPosts, getPostById, guesserIsVotedOnMarket, getYesterdayWinAllPosts };

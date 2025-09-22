@@ -10,6 +10,10 @@ const postSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    result: {
+        type: [String],
+        default: ["Pending"]
+    },
     session: {
         type: String,
         enum: ['Open', 'Close'],

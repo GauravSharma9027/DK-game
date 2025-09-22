@@ -27,6 +27,11 @@ const createGuesser = async (req, res) => {
             reason: isGuesserRequest.reason,
             password: hashedPassword
         });
+        await GuesserRequestModel.findByIdAndUpdate(
+            guesserRequestId,
+            { $set: { credentialCreated: "created" } },
+            { new: true }
+        );
         await GuesserModel.create(newGuesser);
         return res.status(201).json({ success: true, message: "Guesser created successfully" });
     } catch (error) {
@@ -37,7 +42,7 @@ const createGuesser = async (req, res) => {
 
 const getAllGuesser = async (req, res) => {
     try {
-        const Guessers = await GuesserModel.find().select("-password -__v -voteByUser").sort({ vote: -1 }); ;
+        const Guessers = await GuesserModel.find().select("-password -__v -voteByUser").sort({ vote: -1 });;
         return res.status(200).json({ success: true, data: Guessers });
     } catch (error) {
         console.log(error.message);
@@ -47,7 +52,7 @@ const getAllGuesser = async (req, res) => {
 
 const getAllGuesserCount = async (req, res) => {
     try {
-        const Guessers = await GuesserModel.find().select("-password -__v -voteByUser").sort({ vote: -1 }); ;
+        const Guessers = await GuesserModel.find().select("-password -__v -voteByUser").sort({ vote: -1 });;
         return res.status(200).json({ success: true, data: Guessers.length });
     } catch (error) {
         console.log(error.message);

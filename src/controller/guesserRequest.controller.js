@@ -47,7 +47,7 @@ const changeGuesserRequestStatus = async (req, res) => {
             if (!isGuesserRequest) return res.status(404).json({ success: false, message: 'This Guesser Request is not Found' });
             if (isGuesserRequest.status === "rejected" || isGuesserRequest.status === "approved") return res.status(400).json({ success: false, message: 'Guesser Request status already updated' });
             isGuesserRequest.status = status;
-            isGuesserRequest.credentialCreated = "created";
+            // isGuesserRequest.credentialCreated = "created";
             isGuesserRequest.save();
             return res.status(200).json({ success: true, message: 'Status Updated Successfully' });
         }
