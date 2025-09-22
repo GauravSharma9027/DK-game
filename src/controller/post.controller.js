@@ -272,7 +272,6 @@ const getYesterdayWinAllPosts = async (req, res) => {
     try {
         const username = "8168021120";
         const password = "Deepak@8562";
-
         const yesterday = new Date();
         yesterday.setUTCHours(0, 0, 0, 0);
         yesterday.setUTCDate(yesterday.getUTCDate() - 1);
@@ -282,24 +281,21 @@ const getYesterdayWinAllPosts = async (req, res) => {
         const yesterdayStr = `${yyyy}-${mm}-${dd}`;
 
         // Fetch all posts
-        const posts = await PostModel.find().populate("GuesserMongooseID", "name email");
-
+        const posts = await PostModel.find().populate("GuesserMongooseID", "guesserName realName");
         // Evaluate each post
         for (let post of posts) {
             await evaluateSinglePost(post, username, password);
         }
 
         // Fetch updated posts and filter yesterday's wins
-        const updatedPosts = await PostModel.find().populate("GuesserMongooseID", "name email");
+        const updatedPosts = await PostModel.find().populate("GuesserMongooseID", "guesserName realName");
 
         const filteredPosts = updatedPosts.filter(post => {
             const postDateStr = post.createdAt ? new Date(post.createdAt).toISOString().slice(0, 10) : null;
             const hasWin = Array.isArray(post.result) && post.result.some(r => r !== "Loss" && r !== "Pending");
             return postDateStr === yesterdayStr && hasWin;
         });
-
         return res.status(200).json({ success: true, posts: filteredPosts });
-
     } catch (error) {
         console.error("getYesterdayWinAllPosts Error:", error);
         res.status(500).json({ success: false, message: "Server error" });
